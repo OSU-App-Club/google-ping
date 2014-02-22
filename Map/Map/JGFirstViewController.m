@@ -74,22 +74,22 @@
     self.mapView = [GMSMapView mapWithFrame:self.view.bounds camera:camera];
     [self.view addSubview: self.mapView];
 
-    srandom(time(NULL));
+//    srandom(time(NULL));
+//    
+//    for (int i = 0; i < count; i++) {
+//        
+//        double x = arc4random() % 100;
+//        double y = arc4random() % 100;
+//        
+//        GMSMarker *marker = [[GMSMarker alloc] init];
+//        marker.position = CLLocationCoordinate2DMake((corvallis_x - 1) + x/100, (corvallis_y - 1) + y/100);
+////        marker.icon = [GMSMarker markerImageWithColor:[UIColor orangeColor]];
+////        marker.title = @"Corvallis";
+////        marker.snippet = @"Oregon";
+//        marker.map = self.mapView;
+//    }
     
-    for (int i = 0; i < count; i++) {
-        
-        double x = arc4random() % 100;
-        double y = arc4random() % 100;
-        
-        GMSMarker *marker = [[GMSMarker alloc] init];
-        marker.position = CLLocationCoordinate2DMake((corvallis_x - 1) + x/100, (corvallis_y - 1) + y/100);
-//        marker.icon = [GMSMarker markerImageWithColor:[UIColor orangeColor]];
-//        marker.title = @"Corvallis";
-//        marker.snippet = @"Oregon";
-        marker.map = self.mapView;
-    }
-    
-    NSString *urlAsString = [NSString stringWithFormat:@"https://maps.googleapis.com/maps/api/place/radarsearch/json?location=48.859294,2.347589&radius=5000&types=food|cafe&sensor=false&keyword=vegetarian&key=%@", BROWSER_API_KEY];
+    NSString *urlAsString = [NSString stringWithFormat:@"https://maps.googleapis.com/maps/api/place/radarsearch/json?location=44.5708,-123.2760&radius=5000&types=food|cafe&sensor=false&keyword=vegetarian&key=%@", BROWSER_API_KEY];
     NSString *encodedString = [urlAsString stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
     NSURL *url = [[NSURL alloc] initWithString:encodedString];
     
@@ -104,19 +104,21 @@
                                NSArray *results = [parsedObject valueForKey:@"results"];
                                NSLog(@"Count %d", results.count);
                                
-                               for (NSDictionary *loc in results) {
+                               for (NSDictionary *result in results) {
                                    
+                                   NSArray *geo = [result valueForKey:@"geometry"];
+                                   NSArray *loc = [geo valueForKey:@"location"];
                                    
+                                   NSString *lat = [loc valueForKey:@"lat"];
+                                   NSString *lng = [loc valueForKey:@"lng"];
                                    
-//                                   Group *group = [[Group alloc] init];
-//                                   
-//                                   for (NSString *key in groupDic) {
-//                                       if ([group respondsToSelector:NSSelectorFromString(key)]) {
-//                                           [group setValue:[groupDic valueForKey:key] forKey:key];
-//                                       }
-//                                   }
-//                                   
-//                                   [groups addObject:group];
+                                   dispatch_async(dispatch_get_main_queue(), ^{
+                                       // Update UI in some way.
+                                       GMSMarker *marker = [[GMSMarker alloc] init];
+                                       marker.position = CLLocationCoordinate2DMake([lat doubleValue], [lng doubleValue]);
+                                       marker.map = self.mapView;
+                                   });
+
                                }
                            }];
     
