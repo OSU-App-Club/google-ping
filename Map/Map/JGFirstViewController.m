@@ -11,7 +11,40 @@
 #import <GoogleMaps/GoogleMaps.h>
 #import <CoreLocation/CoreLocation.h>
 
+#define IOS_API_KEY     @"AIzaSyDyytOykBL6UJMgeOzx25xK9BF9BbVfRhc"
+#define BROWSER_API_KEY @"AIzaSyDMMwC23Q-Qb9cJUY35ehoWCJdxQaclgC8"
+
+@protocol requestHandlerDelegate <NSObject>
+
+- (void) fetchingGroupsFailedWithError: (NSError *) error;
+- (void) receivedGroupsJSON: (NSData *) data;
+
+@end
+
+@interface requestHandler : NSObject <requestHandlerDelegate>
+
+@end
+
+@implementation requestHandler
+
+- (void) fetchingGroupsFailedWithError: (NSError *) error
+{
+    NSLog(@"%@", error);
+}
+
+
+- (void) receivedGroupsJSON: (NSData *) data
+{
+    NSLog(@"%@", data);
+}
+
+@end
+
+
 @interface JGFirstViewController () <CLLocationManagerDelegate>
+
+@property (nonatomic, strong) GMSMapView *mapView;
+@property (weak, nonatomic) id<requestHandlerDelegate> delegate;
 
 @end
 
@@ -20,60 +53,73 @@
     CLLocationManager *manager;
     GMSCameraPosition *camera;
     CLLocation *currentLocation;
-    GMSMarker *marker;
-    GMSMapView *mapView;
-    //NSMutableArray *towers;
+    NSURL *url;
+    NSData *data;
+    NSString *ret;
 
     double corvallis_x = 44.5708;
     double corvallis_y = -123.2760;
+    int count = 15;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
 
-    
     manager = [[CLLocationManager alloc] init];
     manager.delegate = self;
     manager.desiredAccuracy = kCLLocationAccuracyBest;
     [manager startUpdatingLocation];
     
-    mapView = [GMSMapView mapWithFrame:CGRectZero camera:camera];
-    //mapView.myLocationEnabled = YES;
-    self.view = mapView;
+    self.mapView = [GMSMapView mapWithFrame:self.view.bounds camera:camera];
+    [self.view addSubview: self.mapView];
 
-    // Creates a marker in the center of the map, make sure the mapView_ is created, and
-    // has the camera position set.
-//    marker = [[GMSMarker alloc] init];
-    //marker.icon = [GMSMarker markerImageWithColor:[UIColor blackColor]];
-//    marker.icon = [UIImage imageNamed:@"house"];
-//    marker.position = CLLocationCoordinate2DMake(44.5708, -123.2760);
-//    marker.title = @"Corvallis";
-//    marker.snippet = @"Oregon";
-//    marker.map = mapView;
+    srandom(time(NULL));
+    
+    for (int i = 0; i < count; i++) {
+        
+        double x = arc4random() % 100;
+        double y = arc4random() % 100;
+        
+        GMSMarker *marker = [[GMSMarker alloc] init];
+        marker.position = CLLocationCoordinate2DMake((corvallis_x - 1) + x/100, (corvallis_y - 1) + y/100);
+//        marker.icon = [GMSMarker markerImageWithColor:[UIColor orangeColor]];
+//        marker.title = @"Corvallis";
+//        marker.snippet = @"Oregon";
+        marker.map = self.mapView;
+    }
+    
+    NSString *urlAsString = [NSString stringWithFormat:@"https://maps.googleapis.com/maps/api/place/radarsearch/json?location=48.859294,2.347589&radius=5000&types=food|cafe&sensor=false&keyword=vegetarian&key=%@", BROWSER_API_KEY];
+    NSString *encodedString = [urlAsString stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
+    NSURL *url = [[NSURL alloc] initWithString:encodedString];
     
     
-//    srandom(time(NULL));
-//    
-//    towers = [NSMutableArray array];
-//
-//    for (int i = 0; i < 25; i++) {
-//        double x = arc4random() % 100;
-//        double y = arc4random() % 100;
-//        
-//        //CLLocationCoordinate2D circleCenter = CLLocationCoordinate2DMake(corvallis_x + x, corvallis_y + y);
-//        
-//        GMSCircle *tower = [[GMSCircle alloc] init];
-//        //GMSCircle *tower = [GMSCircle circleWithPosition:circleCenter radius:5];
-//        tower.position = CLLocationCoordinate2DMake(corvallis_x + x, corvallis_y + y);
-//        tower.fillColor = [UIColor colorWithRed:5 green:0 blue:0 alpha:1];
-//        tower.strokeColor = [UIColor redColor];
-//        tower.strokeWidth = 2;
-//        tower.map = mapView;
-//        
-//        [towers addObject:tower];
-//
-//    }
+    [NSURLConnection sendAsynchronousRequest:[[NSURLRequest alloc] initWithURL:url] queue:[[NSOperationQueue alloc] init]
+                           completionHandler:^(NSURLResponse *response, NSData *data, NSError *error)  {
+//                               NSString *result = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+
+//                               NSLog(@"result:  %@ %lu %@", result, (unsigned long)[data length], error);
+                               NSDictionary *parsedObject = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+                               
+                               NSArray *results = [parsedObject valueForKey:@"results"];
+                               NSLog(@"Count %d", results.count);
+                               
+                               for (NSDictionary *loc in results) {
+                                   
+                                   
+                                   
+//                                   Group *group = [[Group alloc] init];
+//                                   
+//                                   for (NSString *key in groupDic) {
+//                                       if ([group respondsToSelector:NSSelectorFromString(key)]) {
+//                                           [group setValue:[groupDic valueForKey:key] forKey:key];
+//                                       }
+//                                   }
+//                                   
+//                                   [groups addObject:group];
+                               }
+                           }];
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -97,10 +143,18 @@
     currentLocation = newLocation;
 
     camera = [GMSCameraPosition cameraWithLatitude:currentLocation.coordinate.latitude longitude:currentLocation.coordinate.longitude zoom:8];
-//    camera = [GMSCameraPosition cameraWithLatitude:44.5708 longitude:-123.2760 zoom:15];
-    [mapView setCamera:camera];
+//    camera = [GMSCameraPosition cameraWithLatitude:corvallis_x longitude:corvallis_y zoom:15];
+    [self.mapView setCamera:camera];
     
     [manager stopUpdatingLocation];
 }
+
+// Places API here
+
+//- (void)searchGroupsAtCoordinate:(CLLocationCoordinate2D)coordinate
+//- (void) queryPlaces
+//{
+//
+//}
 
 @end
