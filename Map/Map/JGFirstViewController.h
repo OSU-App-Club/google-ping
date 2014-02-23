@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface JGFirstViewController : UIViewController
+@interface JGFirstViewController : UIViewController <GMSMapViewDelegate>
 
 @end
