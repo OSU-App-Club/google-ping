@@ -3,7 +3,7 @@ Google Ping
 
 Google Maps Hackathon Project
 
-On tap will calculate the the nearest amenities and calculate the bird's flight distance to each.
+On tap will calculate the the nearest amenities and calculate the bird's flight distance to each.<br/>
 On long-press will display a table-view page (with hard-coded data).
 
 ### To-Do
@@ -17,7 +17,7 @@ On long-press will display a table-view page (with hard-coded data).
   - Google Maps Permission
   
 ### Members:
-+ Jonah George
++ [Jonah George](github.com/jonahgeorge)
 + John Bourgeois
 + Matt Unrath
 + Duy Nguyen
