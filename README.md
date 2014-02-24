@@ -17,7 +17,7 @@ On long-press will display a table-view page (with hard-coded data).
   - Google Maps Permission
   
 ### Members:
-+ [Jonah George](github.com/jonahgeorge)
++ [Jonah George](https://twitter.com/jonahgeorge/)
 + John Bourgeois
 + Matt Unrath
 + Duy Nguyen
